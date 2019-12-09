@@ -26,16 +26,33 @@ public class SpriteComponent extends EntityComponent implements Renderable{
 
         RenderPriority = renderPriority;
 
+        //  create the sprite
+        CurrentSprite = new Sprite(imgAssetID, GetWorldLocation());
+
         // add this component to the render queue
         GameInstance.GetGameInstance().GetDisplay().AddItemToRenderQueue(this);
+    }
 
-        // create the sprite
-        CurrentSprite = new Sprite(imgAssetID, GetWorldLocation());
+    public void SetImageAssetID(String AssetID)
+    {
+        CurrentSprite.SetImageAssetID(AssetID);
+    }
+
+    public void SetXFlipped(boolean XFlipped)
+    {
+        CurrentSprite.setXFlipped(XFlipped);
+    }
+
+    public void SetYFlipped(boolean YFlipped)
+    {
+        CurrentSprite.setYFlipped(YFlipped);
     }
 
     @Override
     public void Destroy()
     {
+        super.Destroy();
+
         // remove ourselves form the rendering queue when we are destroyed
         GameInstance.GetGameInstance().GetDisplay().RemoveItemFromRenderQueue(this);
     }

@@ -2,13 +2,15 @@ package Core;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
  * Created by Jaden on 5/13/2017.
  */
-public class InputManager implements KeyListener{
+public class InputManager implements KeyListener, MouseListener{
 
     private static InputManager CurrentInputManager;
 
@@ -35,9 +37,10 @@ public class InputManager implements KeyListener{
     }
 
     public void keyTyped(KeyEvent e) {
-        for (InputEvent event : Subscribers)
+
+        for (int i = Subscribers.size() - 1; i >= 0; i--)
         {
-            event.KeyTyped(e);
+            Subscribers.get(i).KeyTyped(e);
         }
     }
 
@@ -49,9 +52,9 @@ public class InputManager implements KeyListener{
             Pressedkeys.add(new Integer(e.getKeyCode()));
         }
 
-        for (InputEvent event : Subscribers)
+        for (int i = Subscribers.size() - 1; i >= 0; i--)
         {
-            event.KeyPressed(e);
+            Subscribers.get(i).KeyPressed(e);
         }
     }
 
@@ -66,9 +69,9 @@ public class InputManager implements KeyListener{
             }
         }
 
-        for (InputEvent event : Subscribers)
+        for (int i = Subscribers.size() - 1; i >= 0; i--)
         {
-            event.KeyReleased(e);
+            Subscribers.get(i).KeyReleased(e);
         }
     }
 
@@ -86,5 +89,39 @@ public class InputManager implements KeyListener{
         }
 
         return isFound;
+    }
+
+    public void mouseClicked(MouseEvent e) {
+
+        for (int i = Subscribers.size() - 1; i >= 0; i--)
+        {
+            Subscribers.get(i).mouseClicked(e);
+        }
+
+    }
+
+    public void mousePressed(MouseEvent e) {
+
+        for (int i = Subscribers.size() - 1; i >= 0; i--)
+        {
+            Subscribers.get(i).mousePressed(e);
+        }
+    }
+
+    public void mouseReleased(MouseEvent e) {
+
+        for (int i = Subscribers.size() - 1; i >= 0; i--)
+        {
+            Subscribers.get(i).mouseReleased(e);
+        }
+
+    }
+
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    public void mouseExited(MouseEvent e) {
+
     }
 }

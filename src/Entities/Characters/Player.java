@@ -3,63 +3,197 @@ package Entities.Characters;
 import Core.GameInstance;
 import Core.InputEvent;
 import Core.InputManager;
+import Entities.Entity;
+import Entities.Projectiles.Blast;
+import EntityComponents.CollisionComponent;
+import EntityComponents.SpriteComponent;
 import Levels.Level;
+import Rendering.RenderBuckets;
+import Utils.CollisionCheckResult;
 import Utils.Vector2D;
 
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Created by Jaden on 5/12/2017.
  */
 public class Player extends Character{
 
-    float MovementSpeed = 10.0f;
+    float MovementSpeed = 600.0f;
 
-    public Player(Vector2D Position, Level level) {
+    public CollisionComponent collision;
+
+    public Player(Vector2D Position, Level level)
+    {
         super(Position, level);
 
+        // create the characterSprite
+        CharacterSprite = new SpriteComponent(this, new Vector2D(0.0f, 0.0f), "warrior_still", RenderBuckets.FOREGROUND_BUCKET, 100);
+
+        collision = new CollisionComponent(this, new Vector2D(0,0), 21, 24);
+
+        final Entity current = this;
+
+        InputManager.GetInputManager().OnInputEvent(new InputEvent() {
+            public void KeyPressed(KeyEvent e) {
+
+                if (e.getKeyCode() == KeyEvent.VK_UP)
+                {
+                    CharacterSprite.SetImageAssetID("warrior_running");
+                }
+                else if (e.getKeyCode() == KeyEvent.VK_DOWN)
+                {
+                    CharacterSprite.SetImageAssetID("warrior_running");
+                }
+                else if (e.getKeyCode() == KeyEvent.VK_LEFT)
+                {
+                    CharacterSprite.SetImageAssetID("warrior_running");
+                }
+                else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
+                {
+                    CharacterSprite.SetImageAssetID("warrior_running");
+                }
+                else if (e.getKeyCode() == KeyEvent.VK_R) {
+
+                    Blast blast = null;
+
+                    try {
+                        blast = (Blast)GetLevel().SpawnEntity(Blast.class, GetCurrentLocation());
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+
+                    if(blast != null)
+                    {
+                        blast.Initialize(new Vector2D(1,0), 10, current);
+                    }
+                }
+            }
+
+            public void KeyReleased(KeyEvent e) {
+
+                if (e.getKeyCode() == KeyEvent.VK_UP)
+                {
+                    CharacterSprite.SetImageAssetID("warrior_still");
+                }
+                else if (e.getKeyCode() == KeyEvent.VK_DOWN)
+                {
+                    CharacterSprite.SetImageAssetID("warrior_still");
+                }
+                else if (e.getKeyCode() == KeyEvent.VK_LEFT)
+                {
+                    CharacterSprite.SetImageAssetID("warrior_still");
+                }
+                else if (e.getKeyCode() == KeyEvent.VK_RIGHT)
+                {
+                    CharacterSprite.SetImageAssetID("warrior_still");
+                }
+            }
+
+            public void KeyTyped(KeyEvent e) {}
+
+            public void mouseClicked(MouseEvent e) {
+
+            }
+
+            public void mousePressed(MouseEvent e) {
+
+                Vector2D mousePos = new Vector2D(e.getX(), e.getY());
+
+                Vector2D screenCenter = new Vector2D(GameInstance.GetGameInstance().GetDisplay().frame.getWidth() / 2, GameInstance.GetGameInstance().GetDisplay().getHeight() / 2);
+
+                Vector2D shootDir = mousePos.sub(screenCenter).normalize();
+
+                Blast bl = null;
+
+                try {
+                    bl = (Blast) GetLevel().SpawnEntity(Blast.class, GetCurrentLocation());
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+
+                if (bl != null)
+                {
+                    bl.Initialize(shootDir, 2.0f, current);
+                }
+            }
+
+            public void mouseReleased(MouseEvent e) {
+
+            }
+        });
     }
 
     public void Tick(float DeltaTime)
     {
         super.Tick(DeltaTime);
 
-        /*
         if (InputManager.GetInputManager().isKeyDown(KeyEvent.VK_UP))
         {
-            System.out.println("youtuvbe");
-            SetCurrentLocation(GetCurrentLocation().add(new Vector2D(0, -MovementSpeed * DeltaTime)));
+            CollisionCheckResult result = collision.CheckMove(new Vector2D(0, -MovementSpeed * DeltaTime), true);
+
+            Vector2D prevLoc = GetCurrentLocation();
+
+            if (result.HitEntities.size() == 0) {
+                SetCurrentLocation(GetCurrentLocation().add(new Vector2D(0, -MovementSpeed * DeltaTime)));
+
+                if (collision.CollisionCheck(false).HitEntities.size() != 0)
+                {
+                    SetCurrentLocation(prevLoc);
+                }
+            }
         }
         else if(InputManager.GetInputManager().isKeyDown(KeyEvent.VK_DOWN))
         {
-            SetCurrentLocation(GetCurrentLocation().add(new Vector2D(0, MovementSpeed * DeltaTime)));
+            CollisionCheckResult result = collision.CheckMove(new Vector2D(0, MovementSpeed * DeltaTime), true);
+
+            Vector2D prevLoc = GetCurrentLocation();
+
+            if (result.HitEntities.size() == 0) {
+                SetCurrentLocation(GetCurrentLocation().add(new Vector2D(0, MovementSpeed * DeltaTime)));
+
+                if (collision.CollisionCheck(false).HitEntities.size() != 0)
+                {
+                    SetCurrentLocation(prevLoc);
+                }
+            }
         }
-        if (InputManager.GetInputManager().isKeyDown(KeyEvent.VK_LEFT))
+        else if (InputManager.GetInputManager().isKeyDown(KeyEvent.VK_LEFT))
         {
-            SetCurrentLocation(GetCurrentLocation().add(new Vector2D(-MovementSpeed * DeltaTime, 0)));
+            CollisionCheckResult result = collision.CheckMove(new Vector2D(-MovementSpeed * DeltaTime, 0), true);
+
+            Vector2D prevLoc = GetCurrentLocation();
+
+            if (result.HitEntities.size() == 0) {
+                SetCurrentLocation(GetCurrentLocation().add(new Vector2D(-MovementSpeed * DeltaTime, 0)));
+                CharacterSprite.SetXFlipped(true);
+
+                if (collision.CollisionCheck(false).HitEntities.size() != 0)
+                {
+                    SetCurrentLocation(prevLoc);
+                }
+            }
         }
         else if(InputManager.GetInputManager().isKeyDown(KeyEvent.VK_RIGHT))
         {
-            SetCurrentLocation(GetCurrentLocation().add(new Vector2D(MovementSpeed * DeltaTime, 0)));
-        }*/
+            CollisionCheckResult result = collision.CheckMove(new Vector2D(MovementSpeed * DeltaTime, 0), true);
 
-        int dir = (int)(Math.random() * 3);
+            Vector2D prevLoc = GetCurrentLocation();
 
-        if (dir == 0)
-        {
-            SetCurrentLocation(GetCurrentLocation().add(new Vector2D(0, -MovementSpeed * DeltaTime)));
+            if (result.HitEntities.size() == 0) {
+                SetCurrentLocation(GetCurrentLocation().add(new Vector2D(MovementSpeed * DeltaTime, 0)));
+                CharacterSprite.SetXFlipped(false);
+
+                if (collision.CollisionCheck(false).HitEntities.size() != 0)
+                {
+                    SetCurrentLocation(prevLoc);
+                }
+            }
         }
-        else if(dir == 1)
-        {
-            SetCurrentLocation(GetCurrentLocation().add(new Vector2D(0, MovementSpeed * DeltaTime)));
-        }
-        if (dir == 2)
-        {
-            SetCurrentLocation(GetCurrentLocation().add(new Vector2D(-MovementSpeed * DeltaTime, 0)));
-        }
-        else
-        {
-            SetCurrentLocation(GetCurrentLocation().add(new Vector2D(MovementSpeed * DeltaTime, 0)));
-        }
+
+        // invert the vector because of the translation of the viewport
+        GameInstance.GetGameInstance().GetDisplay().SetViewportOffset(GetCurrentLocation().scale(-1));
     }
 }

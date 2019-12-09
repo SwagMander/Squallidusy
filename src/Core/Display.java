@@ -3,12 +3,9 @@ package Core;
 import Rendering.RenderItem;
 import Rendering.Renderable;
 import Utils.Vector2D;
-import jdk.internal.util.xml.impl.Input;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -18,10 +15,10 @@ import java.util.Collections;
 public class Display extends Canvas{
 
     // graphics object
-    private Graphics2D graphics;
+    public Graphics2D graphics;
 
     // our game window
-    private JFrame frame;
+    public JFrame frame;
 
     // this is the rendered resolution on the display, no matter the JFrame size
     public Vector2D ViewportSize = new Vector2D(1920, 1080);
@@ -36,7 +33,7 @@ public class Display extends Canvas{
     public Display()
     {
         // create the screen here
-        frame = new JFrame("This amazing game");
+        frame = new JFrame("Squallidusy");
         this.setMinimumSize(new Dimension((int)ViewportSize.X, (int)ViewportSize.Y));
         this.setPreferredSize(new Dimension((int)ViewportSize.X, (int)ViewportSize.Y));
         this.setMaximumSize(new Dimension((int)ViewportSize.X, (int)ViewportSize.Y));
@@ -48,6 +45,7 @@ public class Display extends Canvas{
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         this.addKeyListener(InputManager.GetInputManager());
+        this.addMouseListener(InputManager.GetInputManager());
         this.requestFocus();
         // add the render buckets
 
@@ -63,6 +61,7 @@ public class Display extends Canvas{
 
     public void SetViewportScalePercentage(float percentage)
     {
+        // finally set the scaling
         ScaledViewportSize = new Vector2D(ViewportSize.X * percentage, ViewportSize.Y * percentage);
     }
 
@@ -98,12 +97,15 @@ public class Display extends Canvas{
     {
         int renderBucket = renderItem.GetRenderBucket();
 
-        if (renderBucket >= 0 && renderBucket < RenderBucketList.size())
-        {
-            RenderBucketList.get(renderBucket).remove(renderItem);
+        if (renderBucket >= 0 && renderBucket < RenderBucketList.size()) {
 
-            // now we should sort the bucket
-            SortRenderBucket(renderBucket);
+            for (int i = RenderBucketList.get(renderBucket).size() - 1; i >= 0; i--)
+            {
+                if (RenderBucketList.get(renderBucket).get(i).renderObject == renderItem) {
+                    // then remove it
+                    RenderBucketList.get(renderBucket).remove(i);
+                }
+            }
         }
     }
 
@@ -134,6 +136,9 @@ public class Display extends Canvas{
 
         // clear the image for the next frame
         graphics.clearRect(0, 0, (int)ViewportSize.X, (int)ViewportSize.Y);
+
+        // make sure the scaling does not go off center
+        graphics.translate(ViewportSize.X / 2, ViewportSize.Y / 2);
         graphics.scale(ViewportSize.X / ScaledViewportSize.X, ViewportSize.Y / ScaledViewportSize.Y);
 
         // allow the viewport to shift
@@ -142,14 +147,24 @@ public class Display extends Canvas{
         // render the buckets here
         for (ArrayList<RenderItem> list : RenderBucketList)
         {
-            for (RenderItem item : list)
+            for (int i = list.size() - 1; i >= 0; i--)
             {
-                // render each item
-                if (item.renderObject != null)
-                {
-                    item.renderObject.Render(graphics);
+                if (list != null) {
+                    // render each item
+                    if (list.get(i).renderObject != null) {
+                        list.get(i).renderObject.Render(graphics);
+                    }
                 }
             }
+        }
+
+        // draw the collision
+        for (int i = GameInstance.GetGameInstance().CurrentLevel.CollisionComps.size() - 1; i >= 0; i--)
+        {
+            graphics.drawRect(GameInstance.GetGameInstance().CurrentLevel.CollisionComps.get(i).Box.x,
+                    GameInstance.GetGameInstance().CurrentLevel.CollisionComps.get(i).Box.y,
+                    GameInstance.GetGameInstance().CurrentLevel.CollisionComps.get(i).Box.width,
+                    GameInstance.GetGameInstance().CurrentLevel.CollisionComps.get(i).Box.height);
         }
 
         graphics.dispose();

@@ -32,7 +32,25 @@ public abstract class Entity {
 
     public void Tick(float DeltaTime)
     {
+        // called every frame
+        for (EntityComponent comp : Components)
+        {
+            // call the tick on each one
+            comp.ComponentTick(DeltaTime);
+        }
+    }
 
+    public void Destroy()
+    {
+        // destroy all the components
+        for (int i = Components.size() - 1; i >= 0; i--)
+        {
+            // destroy each component
+            Components.get(i).Destroy();
+        }
+
+        // remove self from list in level
+        GetLevel().WorldEntities.remove(this);
     }
 
     // todo get a good Vector class read

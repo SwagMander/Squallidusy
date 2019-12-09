@@ -1,7 +1,10 @@
 package Levels;
 
 import Entities.Entity;
+import EntityComponents.CollisionComponent;
 import Utils.Vector2D;
+
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -12,14 +15,21 @@ import java.util.ArrayList;
 public abstract class Level {
 
     // keeps track of all the game entites in the world
-    private ArrayList<Entity> WorldEntities = new ArrayList<Entity>();
+    public ArrayList<Entity> WorldEntities = new ArrayList<Entity>();
+
+    public ArrayList<CollisionComponent> CollisionComps = new ArrayList<CollisionComponent>();
+
+    public void RegisterCollision(CollisionComponent comp)
+    {
+        CollisionComps.add(comp);
+    }
 
     public void LevelTick(float DeltaTime)
     {
-        for(Entity entity : WorldEntities)
+        for(int i = WorldEntities.size() - 1; i >= 0; i--)
         {
             // tick each of the Entities
-            entity.Tick(DeltaTime);
+            WorldEntities.get(i).Tick(DeltaTime);
         }
     }
 
@@ -32,8 +42,12 @@ public abstract class Level {
     // this will spawn a entity in the world at the world position indicated by SpawnLocation
     public Entity SpawnEntity(Class<?> SpawnClass, Vector2D SpawnLocation) throws IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
 
+        if (SpawnClass == null) return null;
+
         // we are now calling a reflected constructor
         Constructor<?> constructor = SpawnClass.getConstructor(Vector2D.class, Level.class);
+
+        if (constructor == null) return null;
 
         Entity newEntity = (Entity)constructor.newInstance(SpawnLocation, this);
 
@@ -44,5 +58,14 @@ public abstract class Level {
         }
 
         return newEntity;
+    }
+
+    public void Destroy()
+    {
+        for (int i = WorldEntities.size() - 1; i >= 0; i--)
+        {
+            // destroy each entity
+            WorldEntities.get(i).Destroy();
+        }
     }
 }
